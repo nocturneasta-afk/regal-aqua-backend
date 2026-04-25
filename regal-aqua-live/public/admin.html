@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Regal Aqua - Admin Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="admin-config.js"></script>
+  <style>
+    /* Admin Dashboard Styles */
+    .admin-body {
+      font-family: 'Montserrat', sans-serif;
+      background: #0a1628;
+      color: #e0e0e0;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+
+    .admin-login-screen {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0a1628 0%, #1a2d4d 100%);
+    }
+
+    .login-box {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(212, 175, 55, 0.2);
+      border-radius: 16px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      backdrop-filter: blur(10px);
+    }
+
+    .admin-logo {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 1rem;
+    }
+
+    .login-box h2 {
+      color: #D4AF37;
+      margin-bottom: 1.5rem;
+      font-size: 1.8rem;
+    }
+
+    .login-box input {
+      width: 100%;
+      padding: 12px 16px;
+      margin: 8px 0;
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      color: #e0e0e0;
+      font-size: 1rem;
+    }
+
+    .login-box input:focus {
+      outline: none;
+      border-color: #D4AF37;
+      box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
+    }
+
+    .login-box button {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #D4AF37 0%, #C5A028 100%);
+      color: #0a1628;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .login-box button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+    }
+
+    .admin-dashboard {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .admin-sidebar {
+      width: 280px;
+      background: linear-gradient(135deg, #0f1f3d 0%, #1a2d4d 100%);
+      border-right: 1px solid rgba(212, 175, 55, 0.2);
+      padding: 2rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .admin-profile {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+    }
+
+    .admin-avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #D4AF37, #C5A028);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #0a1628;
+      font-weight: 700;
+      font-size: 1.2rem;
+    }
+
+    .admin-info h3 {
+      color: #D4AF37;
+      margin: 0;
+      font-size: 1.1rem;
+    }
+
+    .admin-info p {
+      color: #8892b0;
+      margin: 0;
+      font-size: 0.9rem;
+    }
+
+    .admin-nav {
+      flex: 1;
+    }
+
+    .admin-nav a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      color: #e0e0e0;
+      text-decoration: none;
+      border-radius: 8px;
+      margin-bottom: 4px;
+      transition: all 0.3s ease;
+    }
+
+    .admin-nav a:hover,
+    .admin-nav a.active {
+      background: rgba(212, 175, 55, 0.1);
+      color: #D4AF37;
+    }
+
+    .badge {
+      background: #ef4444;
+      color: white;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      margin-left: auto;
+    }
+
+    .btn-logout {
+      padding: 12px 16px;
+      background: rgba(239, 68, 68, 0.1);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: auto;
+    }
+
+    .btn-logout:hover {
+      background: rgba(239, 68, 68, 0.2);
+    }
+
+    .admin-main {
+      flex: 1;
+      padding: 2rem;
+      overflow-y: auto;
+    }
+
+    .admin-section {
+      display: none;
+    }
+
+    .admin-section.active {
+      display: block;
+    }
+
+    .admin-section h1 {
+      color: #D4AF37;
+      margin-bottom: 2rem;
+      font-size: 2rem;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(212, 175, 55, 0.2);
+      border-radius: 12px;
+      padding: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .stat-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+
+    .stat-info h3 {
+      color: #D4AF37;
+      margin: 0;
+      font-size: 1.8rem;
+    }
+
+    .stat-info p {
+      color: #8892b0;
+      margin: 0;
+      font-size: 0.9rem;
+    }
+
+    .admin-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(212, 175, 55, 0.2);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .admin-card h2 {
+      color: #D4AF37;
+      margin-bottom: 1rem;
+    }
+
+    .activity-list {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .activity-item {
+      padding: 12px;
+      border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .activity-item:last-child {
+      border-bottom: none;
+    }
+
+    .filter-bar {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      align-items: center;
+    }
+
+    .filter-bar select,
+    .filter-bar input {
+      padding: 8px 12px;
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      color: #e0e0e0;
+    }
+
+    .reviews-table {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .review-item {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(212, 175, 55, 0.2);
+      border-radius: 8px;
+      padding: 1rem;
+    }
+
+    .review-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .review-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 1rem;
+    }
+
+    .review-actions button {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+
+    .security-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .toggle-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 10px 0;
+      cursor: pointer;
+    }
+
+    .toggle-label input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+    }
+
+    .empty-state {
+      text-align: center;
+      color: #8892b0;
+      padding: 2rem;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body class="admin-body">
+  
+  <!-- Admin Login (shown if not authenticated) -->
+  <div id="adminLogin" class="admin-login-screen">
+    <div class="login-box">
+      <img src="assets/images/logo.png" alt="Regal Aqua" class="admin-logo">
+      <h2>Admin Access</h2>
+      <form onsubmit="adminLogin(event)">
+        <input type="text" id="adminEmail" placeholder="Admin" required>
+        <input type="password" id="adminPassword" placeholder="Password" required>
+        <button type="submit">Access Dashboard</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Admin Dashboard (shown after auth) -->
+  <div id="adminDashboard" class="admin-dashboard" style="display: none;">
+    
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+      <div class="admin-profile">
+        <div class="admin-avatar">PM</div>
+        <div class="admin-info">
+          <h3>P.M.</h3>
+          <p>Super Admin</p>
+        </div>
+      </div>
+      
+      <nav class="admin-nav">
+        <a href="#overview" class="active" onclick="showSection('overview')">
+          <span class="icon">📊</span> Overview
+        </a>
+        <a href="#reviews" onclick="showSection('reviews')">
+          <span class="icon">⭐</span> Reviews
+          <span class="badge" id="reviewCount">0</span>
+        </a>
+        <a href="#customers" onclick="showSection('customers')">
+          <span class="icon">👥</span> Customers
+        </a>
+        <a href="#orders" onclick="showSection('orders')">
+          <span class="icon">📦</span> Orders
+        </a>
+        <a href="#payments" onclick="showSection('payments')">
+          <span class="icon">💳</span> M-Pesa Payments
+        </a>
+        <a href="#security" onclick="showSection('security')">
+          <span class="icon">🔒</span> Security
+        </a>
+        <a href="#settings" onclick="showSection('settings')">
+          <span class="icon">⚙️</span> Settings
+        </a>
+      </nav>
+      
+      <button class="btn-logout" onclick="adminLogout()">Logout</button>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+      
+      <!-- Overview Section -->
+      <section id="overview" class="admin-section active">
+        <h1>Dashboard Overview</h1>
+        
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(74, 222, 128, 0.1); color: #4ade80;">👥</div>
+            <div class="stat-info">
+              <h3 id="totalUsers">0</h3>
+              <p>Total Users</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(251, 191, 36, 0.1); color: #fbbf24;">⭐</div>
+            <div class="stat-info">
+              <h3 id="totalReviews">0</h3>
+              <p>Reviews</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(96, 165, 250, 0.1); color: #60a5fa;">📦</div>
+            <div class="stat-info">
+              <h3 id="totalOrders">0</h3>
+              <p>Orders Today</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(212, 175, 55, 0.1); color: #D4AF37;">💰</div>
+            <div class="stat-info">
+              <h3 id="totalRevenue">KSH 0</h3>
+              <p>Revenue Today</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="admin-card">
+          <h2>Recent Activity</h2>
+          <div id="activityLog" class="activity-list">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Reviews Section -->
+      <section id="reviews" class="admin-section">
+        <h1>Customer Reviews</h1>
+        <div class="filter-bar">
+          <select id="reviewFilter" onchange="filterReviews()">
+            <option value="all">All Reviews</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="flagged">Flagged</option>
+          </select>
+          <input type="search" id="reviewSearch" placeholder="Search reviews..." onkeyup="searchReviews()">
+        </div>
+        <div id="reviewsList" class="reviews-table">
+          <!-- Populated by JS -->
+        </div>
+      </section>
+
+      <!-- Customers Section -->
+      <section id="customers" class="admin-section">
+        <h1>Customer Database</h1>
+        <div id="customersList" class="data-table">
+          <!-- Populated by JS -->
+        </div>
+      </section>
+
+      <!-- Security Section -->
+      <section id="security" class="admin-section">
+        <h1>Security Monitor</h1>
+        <div class="security-grid">
+          <div class="admin-card">
+            <h3>Login Attempts</h3>
+            <div id="loginAttempts" class="security-log"></div>
+          </div>
+          <div class="admin-card">
+            <h3>Blocked IPs</h3>
+            <div id="blockedIPs" class="security-list"></div>
+          </div>
+          <div class="admin-card">
+            <h3>Security Settings</h3>
+            <label class="toggle-label">
+              <input type="checkbox" id="enableFirewall" checked onchange="toggleSecurity('firewall')">
+              Enable Firewall
+            </label>
+            <label class="toggle-label">
+              <input type="checkbox" id="enableCaptcha" checked onchange="toggleSecurity('captcha')">
+              Enable reCAPTCHA
+            </label>
+            <label class="toggle-label">
+              <input type="checkbox" id="enable2FA" onchange="toggleSecurity('2fa')">
+              Enable 2FA for Admin
+            </label>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>

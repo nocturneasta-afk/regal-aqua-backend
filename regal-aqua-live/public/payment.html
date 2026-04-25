@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment - Regal Aqua</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="storage-encryption.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a1628 0%, #0f1f3d 50%, #1a2d4d 100%);
+            min-height: 100vh;
+            color: #e0e0e0;
+            padding-top: 80px;
+        }
+
+        /* Navigation */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(10, 22, 40, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+            z-index: 1000;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .nav-logo img {
+            height: 40px;
+            width: auto;
+        }
+
+        .nav-logo span {
+            color: #D4AF37;
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .nav-back {
+            color: #8892b0;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            transition: color 0.3s ease;
+        }
+
+        .nav-back:hover {
+            color: #D4AF37;
+        }
+
+        /* Main Container */
+        .payment-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .payment-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .payment-header h1 {
+            color: #D4AF37;
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .payment-header p {
+            color: #8892b0;
+            font-size: 16px;
+        }
+
+        .payment-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+        }
+
+        @media (max-width: 900px) {
+            .payment-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Cards */
+        .payment-card {
+            background: linear-gradient(145deg, #0f1f3d 0%, #1a2d4d 100%);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 20px;
+            padding: 32px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .payment-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #D4AF37, #F4E5C2, #D4AF37);
+        }
+
+        .card-title {
+            color: #D4AF37;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .card-title svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        /* Paybill Display */
+        .paybill-display {
+            background: rgba(212, 175, 55, 0.1);
+            border: 2px solid #D4AF37;
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .paybill-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #D4AF37;
+            letter-spacing: 3px;
+            margin-bottom: 8px;
+        }
+
+        .account-number {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #F4E5C2;
+        }
+
+        .paybill-label {
+            color: #8892b0;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        /* Form Groups */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #D4AF37;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1.5px solid rgba(212, 175, 55, 0.2);
+            border-radius: 12px;
+            color: #e0e0e0;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .form-group input::placeholder {
+            color: #8892b0;
+            opacity: 0.6;
+        }
+
+        .form-group input:focus {
+            border-color: #D4AF37;
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.15);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        /* Buttons */
+        .btn-mpesa {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #00A650 0%, #008F43 100%);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 20px;
+        }
+
+        .btn-mpesa:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 166, 80, 0.4);
+        }
+
+        .btn-mpesa:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-manual {
+            width: 100%;
+            padding: 16px;
+            background: transparent;
+            border: 2px solid #D4AF37;
+            color: #D4AF37;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            margin-top: 12px;
+        }
+
+        .btn-manual:hover {
+            background: rgba(212, 175, 55, 0.1);
+            transform: translateY(-2px);
+        }
+
+        /* Instructions */
+        .manual-steps {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .manual-steps h4 {
+            color: #D4AF37;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+
+        .manual-steps ol {
+            color: #8892b0;
+            padding-left: 20px;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        .manual-steps li strong {
+            color: #D4AF37;
+        }
+
+        /* Order Summary */
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+        }
+
+        .order-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-info h4 {
+            color: #e0e0e0;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .item-info p {
+            color: #8892b0;
+            font-size: 14px;
+        }
+
+        .item-price {
+            color: #D4AF37;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .order-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 20px;
+            border-top: 2px solid rgba(212, 175, 55, 0.3);
+            margin-top: 20px;
+        }
+
+        .order-total span:first-child {
+            color: #8892b0;
+            font-size: 16px;
+        }
+
+        .order-total span:last-child {
+            color: #D4AF37;
+            font-size: 28px;
+            font-weight: 800;
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #fff;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Messages */
+        .alert {
+            padding: 14px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+        }
+
+        .alert-success {
+            background: rgba(74, 222, 128, 0.1);
+            border: 1px solid rgba(74, 222, 128, 0.3);
+            color: #4ade80;
+        }
+
+        .alert svg {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+
+        /* Empty Cart */
+        .empty-cart {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .empty-cart h3 {
+            color: #8892b0;
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+
+        .empty-cart a {
+            color: #D4AF37;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .payment-container { padding: 20px 16px; }
+            .payment-header h1 { font-size: 28px; }
+            .payment-card { padding: 24px 20px; }
+            .paybill-number { font-size: 2rem; }
+        }
+
+        /* Tab System */
+        .payment-tabs { display: flex; gap: 12px; margin-bottom: 24px; }
+        .tab-btn { flex: 1; padding: 14px; background: rgba(255,255,255,0.05); border:1.5px solid rgba(212,175,55,0.2); border-radius:12px; color:#8892b0; cursor:pointer; font-weight:600; }
+        .tab-btn.active { background: rgba(212,175,55,0.1); border-color:#D4AF37; color:#D4AF37; }
+        .tab-content { display:none; }
+        .tab-content.active { display:block; }
+
+        .security-badge { display:flex; align-items:center; justify-content:center; gap:8px; margin-top:20px; color:#8892b0; font-size:12px; }
+        .security-badge svg { width:16px; height:16px; color:#4ade80; }
+
+        /* Sticky pay bar */
+        .sticky-paybar {
+            position: fixed;
+            top: 68px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 40px);
+            max-width: 1100px;
+            background: rgba(6,12,24,0.9);
+            border: 1px solid rgba(212,175,55,0.12);
+            padding: 10px 16px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            z-index: 1100;
+            box-shadow: 0 8px 30px rgba(4,8,20,0.6);
+        }
+
+        .sticky-inner { width:100%; display:flex; align-items:center; justify-content:space-between; gap:12px }
+        .sticky-total { color:#F4E5C2; font-weight:700 }
+        .sticky-actions { display:flex; gap:8px }
+
+        @media (max-width:600px) {
+            .sticky-paybar { width: calc(100% - 24px); top:60px; padding:10px }
+            .sticky-actions { gap:6px }
+            .sticky-total { font-size:14px }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <a href="index.html" class="nav-logo">
+            <img src="assets/images/logo.png" loading="lazy" alt="Regal Aqua" onerror="this.style.display='none'">
+            <span>REGAL AQUA</span>
+        </a>
+        <a href="index.html" class="nav-back">Back to Home</a>
+    </nav>
+
+    <!-- Sticky pay bar (visible above fold) -->
+    <div id="stickyPayBar" class="sticky-paybar" aria-hidden="false">
+        <div class="sticky-inner">
+            <div class="sticky-total">Total: <span id="stickyTotal">KSH 0</span></div>
+            <div class="sticky-actions">
+                <button id="stickyPromptBtn" class="btn-mpesa">Pay (Prompt)</button>
+                <button id="stickyManualBtn" class="btn-manual">Paybill</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="payment-container">
+        <div class="payment-header">
+            <h1>Complete Your Payment</h1>
+            <p>Choose your preferred M-Pesa payment method</p>
+        </div>
+
+        <div class="payment-grid">
+            <div class="payment-card">
+                <h2 class="card-title">Order Summary</h2>
+                <div id="orderItems"></div>
+                <div id="orderBreakdown" style="margin-top:12px">
+                    <div class="detail-row"><span style="color:#8892b0">Subtotal</span><span id="subtotalEl" style="color:#e0e0e0">KSH 0</span></div>
+                    <div class="detail-row"><span style="color:#8892b0">Tax</span><span id="taxEl" style="color:#e0e0e0">KSH 0</span></div>
+                    <div class="detail-row"><span style="color:#8892b0">Shipping</span><span id="shippingEl" style="color:#e0e0e0">KSH 0</span></div>
+                </div>
+                <div class="order-total">
+                    <span>Total Amount</span>
+                    <span id="orderTotal">KSH 0</span>
+                </div>
+
+                <div class="paybill-display" style="margin-top: 24px;">
+                    <div class="paybill-label">Company Paybill Number</div>
+                    <div class="paybill-number">247247</div>
+                    <div class="paybill-label" style="margin-top: 12px;">Account Number</div>
+                    <div class="account-number">600 095</div>
+                </div>
+            </div>
+
+            <div class="payment-card">
+                <h2 class="card-title">Payment Options</h2>
+                <div class="payment-tabs">
+                    <button class="tab-btn active" onclick="switchTab('stk')">M-Pesa Prompt</button>
+                    <button class="tab-btn" onclick="switchTab('manual')">Lipa na M-Pesa</button>
+                </div>
+
+                <div id="stkTab" class="tab-content active">
+                    <div class="alert alert-error" id="stkError"><span id="stkErrorText"></span></div>
+                    <div class="alert alert-success" id="stkSuccess"><span id="stkSuccessText"></span></div>
+
+                    <div class="form-group">
+                        <label for="stkPhone">M-Pesa Phone Number</label>
+                        <input type="tel" id="stkPhone" placeholder="0712345678">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="stkAmount">Amount (KSH)</label>
+                        <input type="number" id="stkAmount" placeholder="Enter amount" min="1" max="150000">
+                    </div>
+
+                    <button class="btn-mpesa" id="stkBtn" onclick="initiateSTKPush()">GET M-PESA PROMPT</button>
+                    <p style="color: #8892b0; font-size: 13px; text-align: center; margin-top: 12px;">You will receive an M-Pesa prompt on your phone. Enter your PIN to complete.</p>
+                </div>
+
+                <div id="manualTab" class="tab-content">
+                    <div class="paybill-display">
+                        <div class="paybill-label">Business Number</div>
+                        <div class="paybill-number">247247</div>
+                        <div class="paybill-label" style="margin-top: 12px;">Account Number</div>
+                        <div class="account-number">600 095</div>
+                    </div>
+
+                    <div class="manual-steps">
+                        <h4>How to Pay via Lipa na M-Pesa</h4>
+                        <ol>
+                            <li>Go to <strong>M-Pesa</strong> on your phone</li>
+                            <li>Select <strong>Lipa na M-Pesa</strong></li>
+                            <li>Select <strong>Paybill</strong></li>
+                            <li>Enter Business No: <strong>247247</strong></li>
+                            <li>Enter Account No: <strong>600 095</strong></li>
+                            <li>Enter Amount: <strong id="manualAmount">0</strong></li>
+                            <li>Enter your M-Pesa PIN and confirm</li>
+                        </ol>
+                    </div>
+
+                    <div class="form-group" style="margin-top:12px">
+                        <label for="manualTx">Enter M-Pesa Transaction Code</label>
+                        <input id="manualTx" class="form-input" placeholder="e.g. ABC123XYZ">
+                        <small style="display:block;margin-top:8px;color:#8892b0">After submission we'll verify the code and confirm your order. You can also email the receipt to regaldrink@gmail.com</small>
+                    </div>
+
+                    <button class="btn-manual" onclick="submitManualPayment()">SUBMIT PAYMENT CODE</button>
+                </div>
+
+                <div class="security-badge">Secure M-Pesa Payment</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const COMPANY_PAYBILL = '247247';
+        const COMPANY_ACCOUNT = '600095';
+
+        function getStoredAuthUser() {
+            if (window.secureStorage) {
+                const secureUser = secureStorage.getUser();
+                if (secureUser) return secureUser;
+            }
+
+            try {
+                const plain = JSON.parse(localStorage.getItem('regalAquaAuth') || '{}');
+                return plain.user || null;
+            } catch (error) {
+                return null;
+            }
+        }
+
+        async function prefillPhoneFromAccount() {
+            const phoneInput = document.getElementById('stkPhone');
+            if (!phoneInput) return;
+
+            const storedUser = getStoredAuthUser();
+            if (storedUser && storedUser.phone) {
+                phoneInput.value = storedUser.phone;
+                return;
+            }
+
+            const token = window.secureStorage ? secureStorage.getToken() : null;
+            if (!token) return;
+
+            try {
+                const response = await fetch('/api/user/profile', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const data = await response.json();
+                if (response.ok && data.success && data.user && data.user.phone) {
+                    phoneInput.value = data.user.phone;
+                    if (window.secureStorage) {
+                        secureStorage.setUser(data.user);
+                    }
+                }
+            } catch (error) {
+                console.warn('Unable to prefill phone number.');
+            }
+        }
+
+        function loadOrderSummary() {
+            const cart = JSON.parse(localStorage.getItem('regalCart') || '[]');
+            const container = document.getElementById('orderItems');
+            const totalEl = document.getElementById('orderTotal');
+            const subtotalEl = document.getElementById('subtotalEl');
+            const taxEl = document.getElementById('taxEl');
+            const shippingEl = document.getElementById('shippingEl');
+            const manualAmount = document.getElementById('manualAmount');
+            const stkAmount = document.getElementById('stkAmount');
+
+            if (cart.length === 0) {
+                container.innerHTML = `<div class="empty-cart"><h3>Your cart is empty</h3><a href="index.html#products">Browse Products</a></div>`;
+                totalEl.textContent = 'KSH 0';
+                manualAmount.textContent = '0';
+                if (stkAmount) stkAmount.value = '';
+                return;
+            }
+
+            let subtotal = 0;
+            container.innerHTML = cart.map(item => {
+                subtotal += item.price * item.quantity;
+                return `<div class="order-item"><div class="item-info"><h4>${item.name}</h4><p>Qty: ${item.quantity}</p></div><div class="item-price">KSH ${(item.price * item.quantity).toLocaleString()}</div></div>`;
+            }).join('');
+
+            const tax = 0; // adjust if tax rules apply
+            const shipping = 0; // adjust if shipping rules apply
+            const total = subtotal + tax + shipping;
+
+            subtotalEl.textContent = 'KSH ' + subtotal.toLocaleString();
+            taxEl.textContent = 'KSH ' + tax.toLocaleString();
+            shippingEl.textContent = 'KSH ' + shipping.toLocaleString();
+            totalEl.textContent = 'KSH ' + total.toLocaleString();
+            manualAmount.textContent = total.toLocaleString();
+            if (stkAmount) stkAmount.value = total;
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            if (tab === 'stk') { document.querySelectorAll('.tab-btn')[0].classList.add('active'); document.getElementById('stkTab').classList.add('active'); }
+            else { document.querySelectorAll('.tab-btn')[1].classList.add('active'); document.getElementById('manualTab').classList.add('active'); }
+        }
+
+        async function initiateSTKPush() {
+            const btn = document.getElementById('stkBtn');
+            const phone = document.getElementById('stkPhone').value.trim();
+            const amount = parseInt(document.getElementById('stkAmount').value);
+            document.getElementById('stkError').style.display = 'none';
+            document.getElementById('stkSuccess').style.display = 'none';
+            if (!phone || phone.length < 10) { showStkError('Please enter a valid phone number'); return; }
+            if (!amount || amount < 1) { showStkError('Please enter a valid amount'); return; }
+
+            let formattedPhone = phone;
+            if (phone.startsWith('0')) formattedPhone = '254' + phone.substring(1);
+            else if (phone.startsWith('+')) formattedPhone = phone.substring(1);
+
+            btn.disabled = true; btn.textContent = 'Sending prompt...';
+
+            try {
+                // Get CSRF token
+                const csrfToken = await getCSRFToken();
+                
+                const orderId = `order_${Date.now()}`;
+                const payload = { phoneNumber: formattedPhone, amount, orderId };
+                
+                const headers = {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': csrfToken
+                };
+                
+                const resp = await fetch('/api/payment/mpesa/stkpush', { 
+                    method: 'POST', 
+                    headers, 
+                    body: JSON.stringify(payload) 
+                });
+                const data = await resp.json();
+                if (!data.success) throw new Error(data.error || 'STK failed');
+
+                // Store payment data in encrypted storage (not plain localStorage)
+                const cart = JSON.parse(localStorage.getItem('regalCart') || '[]');
+                const lastPayment = {
+                    method: 'stk_prompt',
+                    amount: 'KSH ' + amount.toLocaleString(),
+                    orderId,
+                    items: cart,
+                    timestamp: Date.now()
+                };
+                secureStorage.setPaymentData(lastPayment);
+
+                showStkSuccess('M-Pesa prompt sent to ' + phone + '!');
+                setTimeout(() => { 
+                    localStorage.removeItem('regalCart'); 
+                    window.location.href = 'payment-success.html'; 
+                }, 1500);
+            } catch (err) {
+                showStkError('Failed to send M-Pesa prompt. ' + (err.message || ''));
+                btn.disabled = false; btn.textContent = 'GET M-PESA PROMPT';
+            }
+        }
+
+        function showStkError(message) { const errorDiv = document.getElementById('stkError'); document.getElementById('stkErrorText').textContent = message; errorDiv.style.display = 'block'; }
+        function showStkSuccess(message) { const d = document.getElementById('stkSuccess'); document.getElementById('stkSuccessText').textContent = message; d.style.display = 'block'; }
+
+        async function submitManualPayment() {
+            const tx = document.getElementById('manualTx').value.trim();
+            if (!tx) { alert('Please enter the M-Pesa transaction code.'); return; }
+            const cart = JSON.parse(localStorage.getItem('regalCart') || '[]');
+            const total = cart.reduce((s,i)=>s+(i.price*i.quantity),0);
+
+            const orderId = `manual_${Date.now()}`;
+            
+            try {
+                // Get CSRF token
+                const csrfToken = await getCSRFToken();
+                
+                const payload = {
+                    paybill: COMPANY_PAYBILL,
+                    account: COMPANY_ACCOUNT,
+                    amount: total,
+                    transactionCode: tx,
+                    orderId
+                };
+
+                const headers = {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': csrfToken
+                };
+
+                const resp = await fetch('/api/payment/manual/submit', { 
+                    method: 'POST', 
+                    headers, 
+                    body: JSON.stringify(payload) 
+                });
+                const data = await resp.json();
+                if (!data.success) throw new Error(data.error || 'Submission failed');
+
+                // Store payment details in encrypted storage
+                const lastPayment = {
+                    method: 'manual_paybill',
+                    amount: 'KSH ' + total.toLocaleString(),
+                    transactionCode: tx,
+                    orderId,
+                    items: cart,
+                    timestamp: Date.now()
+                };
+                secureStorage.setPaymentData(lastPayment);
+
+                alert('Payment submitted for verification. Thank you!');
+                localStorage.removeItem('regalCart');
+                setTimeout(() => {
+                    window.location.href = 'payment-success.html';
+                }, 1500);
+            } catch (err) {
+                alert('Failed to submit payment: ' + (err.message || ''));
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            loadOrderSummary();
+            await prefillPhoneFromAccount();
+        });
+    </script>
+
+    <script defer>
+    (function(){
+        function updateStickyTotal() {
+            const cart = JSON.parse(localStorage.getItem('regalCart') || '[]');
+            const total = cart.reduce((s,i)=>s+(i.price*i.quantity),0);
+            const el = document.getElementById('stickyTotal');
+            if (el) el.textContent = total ? ('KSH ' + total.toLocaleString()) : 'KSH 0';
+        }
+
+        function goToPrompt() {
+            const stk = document.getElementById('stkTab');
+            if (stk) stk.scrollIntoView({behavior:'smooth', block:'center'});
+            const phone = document.getElementById('stkPhone'); if (phone) phone.focus();
+        }
+
+        function goToManual() {
+            const manual = document.getElementById('manualTab');
+            if (manual) {
+                document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                document.getElementById('manualTab').classList.add('active');
+                manual.scrollIntoView({behavior:'smooth', block:'center'});
+                const tx = document.getElementById('manualTx'); if (tx) tx.focus();
+            }
+        }
+
+        updateStickyTotal();
+        window.addEventListener('storage', updateStickyTotal);
+        setInterval(updateStickyTotal, 1500);
+
+        document.addEventListener('DOMContentLoaded', ()=>{
+            const pb = document.getElementById('stickyPromptBtn');
+            const mb = document.getElementById('stickyManualBtn');
+            if (pb) pb.addEventListener('click', goToPrompt);
+            if (mb) mb.addEventListener('click', goToManual);
+        });
+    })();
+    </script>
+</body>
+</html>
