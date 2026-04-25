@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Successful - Regal Aqua</title>
+    <style>
+        /* minimal styles from user template */
+        body{font-family:Segoe UI, Tahoma, Geneva, Verdana, sans-serif;background:linear-gradient(135deg,#0a1628 0%,#0f1f3d 50%,#1a2d4d 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;color:#e0e0e0}
+        .success-container{max-width:520px;padding:40px;text-align:center}
+        .success-icon{width:80px;height:80px;background:linear-gradient(135deg,#00A650 0%,#008F43 100%);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 24px}
+        h1{color:#D4AF37;font-size:28px;margin-bottom:12px}
+        p{color:#8892b0;margin-bottom:24px}
+        .order-details{background:linear-gradient(145deg,#0f1f3d 0%,#1a2d4d 100%);border:1px solid rgba(212,175,55,0.2);border-radius:16px;padding:24px;margin-bottom:24px}
+        .detail-row{display:flex;justify-content:space-between;margin-bottom:12px;color:#8892b0}
+        .btn-home{display:inline-block;padding:16px 32px;background:linear-gradient(135deg,#D4AF37 0%,#C5A028 100%);color:#0a1628;text-decoration:none;border-radius:12px;font-weight:700}
+        .contact-info{margin-top:24px;color:#8892b0;font-size:14px}
+    </style>
+</head>
+<body>
+    <div class="success-container">
+        <div class="success-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" width="40" height="40">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+        </div>
+        <h1>Payment Successful!</h1>
+        <p>Thank you for your order. Your payment has been received and is being processed.</p>
+
+        <div class="order-details" id="orderDetails">
+            <div class="detail-row"><span>Payment Method</span><span id="paymentMethod">M-Pesa</span></div>
+            <div class="detail-row"><span>Amount Paid</span><span id="amountPaid">KSH 0</span></div>
+            <div class="detail-row"><span>Status</span><span style="color:#4ade80">Confirmed</span></div>
+        </div>
+
+        <a href="index.html" class="btn-home">Continue Shopping</a>
+
+        <div class="contact-info"><p>Questions? Contact us at <a href="tel:+254745600024">0745 600 024</a> | <a href="https://wa.me/254745600024" target="_blank" title="Chat on WhatsApp"><i class="fab fa-whatsapp"></i> WhatsApp</a></p><p>or <a href="mailto:regaldrink@gmail.com">regaldrink@gmail.com</a></p></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="storage-encryption.js"></script>
+    <script>
+        const lastPayment = (window.secureStorage && secureStorage.getPaymentData()) || JSON.parse(localStorage.getItem('lastPayment') || '{}');
+        const cart = JSON.parse(localStorage.getItem('regalCart') || '[]');
+        if (lastPayment.amount) document.getElementById('amountPaid').textContent = lastPayment.amount;
+        else if (cart.length>0) { const total = cart.reduce((s,i)=>s+(i.price*i.quantity),0); document.getElementById('amountPaid').textContent = 'KSH '+total.toLocaleString(); }
+        if (lastPayment.method === 'manual_paybill') document.getElementById('paymentMethod').textContent = 'M-Pesa Paybill';
+        localStorage.removeItem('regalCart'); localStorage.removeItem('lastPayment');
+        if (window.secureStorage) secureStorage.clearPaymentData();
+    </script>
+</body>
+</html>

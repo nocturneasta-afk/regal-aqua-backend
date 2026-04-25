@@ -1,0 +1,16 @@
+{
+  "name": "Regal Aqua",
+  "short_name": "RegalAqua",
+  "description": "Premium purified drinking water delivery service for Kenya",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0A1628",
+  "theme_color": "#D4AF37",
+  "icons": [
+    {
+      "src": "assets/images/logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}

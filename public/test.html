@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regal Aqua - Test Page</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        button { padding: 10px 20px; margin: 5px; background: #D4AF37; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #C5A028; }
+    </style>
+</head>
+<body>
+    <h1>Regal Aqua - Feature Test</h1>
+
+    <div class="test-section">
+        <h2>Review System Test</h2>
+        <button onclick="openReviewModal()">Open Review Modal</button>
+        <button onclick="closeReviewModal()">Close Review Modal</button>
+    </div>
+
+    <div class="test-section">
+        <h2>M-Pesa Payment Test</h2>
+        <input type="number" id="testAmount" placeholder="Amount" value="100">
+        <input type="text" id="testPhone" placeholder="Phone (254...)" value="254712345678">
+        <button onclick="testMpesa()">Test M-Pesa</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Security Test</h2>
+        <button onclick="testSecurity()">Test Security Functions</button>
+        <div id="securityResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Notification Test</h2>
+        <button onclick="notify.show('success', 'Success!', 'This is a test notification')">Success</button>
+        <button onclick="notify.show('error', 'Error!', 'This is an error test')">Error</button>
+        <button onclick="notify.show('info', 'Info!', 'This is an info test')">Info</button>
+    </div>
+
+    <!-- Include our scripts -->
+    <script src="regal-aqua-fixes.js"></script>
+
+    <script>
+        function testMpesa() {
+            const amount = document.getElementById('testAmount').value;
+            const phone = document.getElementById('testPhone').value;
+            alert(`Testing M-Pesa: Amount ${amount}, Phone ${phone}`);
+        }
+
+        function testSecurity() {
+            const result = document.getElementById('securityResult');
+            const sanitized = sanitizeInput('<script>alert("xss")</script>');
+            const emailValid = validateEmail('test@example.com');
+            const phoneValid = validatePhone('254712345678');
+
+            result.innerHTML = `
+                <p>Sanitized Input: ${sanitized}</p>
+                <p>Email Valid: ${emailValid}</p>
+                <p>Phone Valid: ${phoneValid}</p>
+            `;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,65 @@
+/* ============================================
+   BUTTON STATE FIXES
+   ============================================ */
+
+/* Ensure all buttons are clickable */
+button, .btn, [class*="btn"], a {
+    cursor: pointer;
+    position: relative;
+    z-index: 10;
+}
+
+/* Fix disabled states */
+button:disabled, .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Loading state */
+.btn-loading {
+    position: relative;
+    color: transparent !important;
+}
+
+.btn-loading::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    top: 50%;
+    left: 50%;
+    margin: -10px 0 0 -10px;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Notification toast */
+.notification-toast {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Ensure modals are on top */
+.modal, .modal-overlay {
+    z-index: 9999;
+}
+
+/* Fix mobile menu */
+.mobile-nav.active, .nav-links.active {
+    display: flex !important;
+}
+
+/* Cart badge animation */
+.cart-count {
+    transition: transform 0.3s ease;
+}
+
+.cart-count.updated {
+    transform: scale(1.3);
+}
